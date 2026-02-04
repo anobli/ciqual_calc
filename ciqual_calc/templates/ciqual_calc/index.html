@@ -1,11 +1,19 @@
 kkk<!DOCTYPE html>
 <html>
 <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CIQUAL 10-Row Calculator</title>
     <link href="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/css/tom-select.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/js/tom-select.complete.min.js"></script>
     <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 1000px; margin: 40px auto; background: #f4f7f6; }
+        * { box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 1000px;
+            margin: 40px auto;
+            background: #f4f7f6;
+            padding: 0 10px;
+        }
         .card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
         table { width: 100%; border-collapse: collapse; margin-top: 20px; }
         th { background: #eee; padding: 12px; text-align: left; }
@@ -14,6 +22,28 @@ kkk<!DOCTYPE html>
         .total-row { background: #2c3e50; color: white; font-weight: bold; }
         .total-row td { padding: 15px; }
         .ts-control { border-radius: 4px; }
+
+        /* Mobile responsive styles */
+        @media screen and (max-width: 768px) {
+            body { margin: 10px auto; padding: 0 5px; }
+            .card { padding: 10px; border-radius: 4px; }
+
+            /* Hide nutrition columns for individual rows on mobile */
+            tbody .nutrition-col { display: none; }
+            thead .nutrition-header { display: none; }
+
+            /* In total row, hide everything except Kcal */
+            .total-row .hide-mobile { display: none; }
+            .total-row { font-size: 16px; }
+            .total-row td { padding: 12px 8px; }
+
+            /* Adjust table for mobile */
+            th, td { padding: 6px 4px; font-size: 14px; }
+            input[type="number"] { width: 60px; padding: 6px; font-size: 14px; }
+
+            /* Make select dropdown full width on mobile */
+            .ts-control { font-size: 14px; }
+        }
     </style>
 </head>
 <body>
@@ -25,10 +55,10 @@ kkk<!DOCTYPE html>
             <tr>
                 <th style="width: 50%;">Food Item</th>
                 <th>Weight (g)</th>
-                <th>Kcal</th>
-                <th>Prot (g)</th>
-                <th>Carbs (g)</th>
-                <th>Fat (g)</th>
+                <th class="nutrition-header">Kcal</th>
+                <th class="nutrition-header">Prot (g)</th>
+                <th class="nutrition-header">Carbs (g)</th>
+                <th class="nutrition-header">Fat (g)</th>
             </tr>
         </thead>
         <tbody id="calc-body">
@@ -36,11 +66,11 @@ kkk<!DOCTYPE html>
         <tfoot>
             <tr class="total-row">
                 <td>TOTAL</td>
-                <td>-</td>
+                <td class="hide-mobile">-</td>
                 <td id="grand-kcal">0.0</td>
-                <td id="grand-prot">0.0</td>
-                <td id="grand-carbs">0.0</td>
-                <td id="grand-fat">0.0</td>
+                <td id="grand-prot" class="hide-mobile">0.0</td>
+                <td id="grand-carbs" class="hide-mobile">0.0</td>
+                <td id="grand-fat" class="hide-mobile">0.0</td>
             </tr>
         </tfoot>
     </table>
@@ -57,10 +87,10 @@ kkk<!DOCTYPE html>
         tr.innerHTML = `
             <td><select id="select-${i}" class="food-opt" placeholder="Search food..."></select></td>
             <td><input type="number" id="weight-${i}" value="0" min="0" oninput="calculate()"></td>
-            <td id="kcal-${i}">0.0</td>
-            <td id="prot-${i}">0.0</td>
-            <td id="carbs-${i}">0.0</td>
-            <td id="fat-${i}">0.0</td>
+            <td id="kcal-${i}" class="nutrition-col">0.0</td>
+            <td id="prot-${i}" class="nutrition-col">0.0</td>
+            <td id="carbs-${i}" class="nutrition-col">0.0</td>
+            <td id="fat-${i}" class="nutrition-col">0.0</td>
         `;
         tableBody.appendChild(tr);
 
