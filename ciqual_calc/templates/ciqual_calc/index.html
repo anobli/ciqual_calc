@@ -1,0 +1,127 @@
+kkk<!DOCTYPE html>
+<html>
+<head>
+    <title>CIQUAL 10-Row Calculator</title>
+    <link href="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/css/tom-select.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/js/tom-select.complete.min.js"></script>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 1000px; margin: 40px auto; background: #f4f7f6; }
+        .card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th { background: #eee; padding: 12px; text-align: left; }
+        td { padding: 8px; border-bottom: 1px solid #ddd; }
+        input[type="number"] { width: 80px; padding: 8px; border: 1px solid #ccc; border-radius: 4px; }
+        .total-row { background: #2c3e50; color: white; font-weight: bold; }
+        .total-row td { padding: 15px; }
+        .ts-control { border-radius: 4px; }
+    </style>
+</head>
+<body>
+
+<div class="card">
+    <h2>Daily Food Calculator</h2>
+    <table>
+        <thead>
+            <tr>
+                <th style="width: 50%;">Food Item</th>
+                <th>Weight (g)</th>
+                <th>Kcal</th>
+                <th>Prot (g)</th>
+                <th>Carbs (g)</th>
+                <th>Fat (g)</th>
+            </tr>
+        </thead>
+        <tbody id="calc-body">
+            </tbody>
+        <tfoot>
+            <tr class="total-row">
+                <td>TOTAL</td>
+                <td>-</td>
+                <td id="grand-kcal">0.0</td>
+                <td id="grand-prot">0.0</td>
+                <td id="grand-carbs">0.0</td>
+                <td id="grand-fat">0.0</td>
+            </tr>
+        </tfoot>
+    </table>
+</div>
+
+<script>
+    const rowCount = 10;
+    const tableBody = document.getElementById('calc-body');
+    const rowData = {}; // Stores nutritional data per row
+
+    // 1. Generate 10 rows
+    for (let i = 1; i <= rowCount; i++) {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td><select id="select-${i}" class="food-opt" placeholder="Search food..."></select></td>
+            <td><input type="number" id="weight-${i}" value="0" min="0" oninput="calculate()"></td>
+            <td id="kcal-${i}">0.0</td>
+            <td id="prot-${i}">0.0</td>
+            <td id="carbs-${i}">0.0</td>
+            <td id="fat-${i}">0.0</td>
+        `;
+        tableBody.appendChild(tr);
+
+        // 2. Initialize TomSelect for each row
+        new TomSelect(`#select-${i}`, {
+            valueField: 'id',
+            labelField: 'text',
+            searchField: 'text',
+            load: function(query, callback) {
+                fetch(`/api/search/?q=${encodeURIComponent(query)}`)
+                    .then(res => res.json())
+                    .then(json => callback(json.results))
+                    .catch(() => callback());
+            },
+            onChange: function(id) {
+                const item = this.options[id];
+                rowData[i] = item; // Store the 100g values
+                calculate();
+            }
+        });
+    }
+
+    // 3. Calculation Logic
+    function calculate() {
+        let totalKcal = 0, totalProt = 0, totalCarbs = 0, totalFat = 0;
+
+        for (let i = 1; i <= rowCount; i++) {
+            const weight = parseFloat(document.getElementById(`weight-${i}`).value) || 0;
+            const data = rowData[i];
+
+            if (data && weight > 0) {
+                const ratio = weight / 100;
+                const rKcal = (data.kcal * ratio).toFixed(1);
+                const rProt = (data.protein * ratio).toFixed(1);
+                const rCarbs = (data.carbs * ratio).toFixed(1);
+                const rFat = (data.fat * ratio).toFixed(1);
+
+                document.getElementById(`kcal-${i}`).innerText = rKcal;
+                document.getElementById(`prot-${i}`).innerText = rProt;
+                document.getElementById(`carbs-${i}`).innerText = rCarbs;
+                document.getElementById(`fat-${i}`).innerText = rFat;
+
+                totalKcal += parseFloat(rKcal);
+                totalProt += parseFloat(rProt);
+                totalCarbs += parseFloat(rCarbs);
+                totalFat += parseFloat(rFat);
+            } else {
+                // Reset row if empty
+                ['kcal', 'prot', 'carbs', 'fat'].forEach(k => {
+                    document.getElementById(`${k}-${i}`).innerText = "0.0";
+                });
+            }
+        }
+
+        // Update Grand Totals
+        document.getElementById('grand-kcal').innerText = totalKcal.toFixed(1);
+        document.getElementById('grand-prot').innerText = totalProt.toFixed(1);
+        document.getElementById('grand-carbs').innerText = totalCarbs.toFixed(1);
+        document.getElementById('grand-fat').innerText = totalFat.toFixed(1);
+    }
+</script>
+
+</body>
+</html>

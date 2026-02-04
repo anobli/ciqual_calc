@@ -1,0 +1,11 @@
+version: '3.8'
+services:
+  web:
+    build: .
+    restart: always
+    ports:
+      - "8000:8000"
+    volumes:
+      - ciqual_sqlite:/app/db_storage
+volumes:
+  ciqual_sqlite:
